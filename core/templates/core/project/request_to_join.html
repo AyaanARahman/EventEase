@@ -1,0 +1,48 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'core/request-to-join.css' %}">
+
+<div class="container mt-4">
+    <div class="join-request-header">
+        <h1>Request to Join Project</h1>
+    </div>
+
+    <div class="project-info">
+        <i class="fas fa-project-diagram"></i>
+        <h2>{{ project.title }}</h2>
+    </div>
+
+    <div class="join-request-card">
+        <div class="card-body p-4">
+            <form method="post" class="join-request-form">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label for="{{ form.message.id_for_label }}" class="form-label">
+                        <i class="fas fa-envelope me-2"></i>
+                        Message to Project Owner (Optional)
+                    </label>
+                    {{ form.message }}
+                    <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        {{ form.message.help_text }}
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                        Submit Request
+                    </button>
+                    <a href="{% url 'project_detail' project.slug %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

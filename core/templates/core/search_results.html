@@ -1,0 +1,38 @@
+{% extends "core/base.html" %}
+{% load custom_filters %}
+
+{% block content %}
+<h2>Search Results for "{{ query }}"</h2>
+
+{% if results %}
+    <ul class="list-group">
+    {% for result in results %}
+        <li class="list-group-item">
+            {% if result|isinstance_of:"User" %}
+                <h5>User: {{ result.get_full_name }}</h5>
+                <p>Username: {{ result.username }}</p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'user_profile' result.username %}" class="btn btn-primary btn-sm">View Profile</a>
+                {% endif %}
+            {% elif result|isinstance_of:"Organization" %}
+                <h5>Organization: {{ result.name }}</h5>
+                <p>{{ result.description|truncatewords:20 }}</p>
+                <a href="{% url 'organization_detail' result.slug %}" class="btn btn-primary btn-sm">View Organization</a>
+            {% elif result|isinstance_of:"Project" %}
+                <h5>Project: {{ result.title }}</h5>
+                <p>{{ result.description|truncatewords:20 }}</p>
+                <a href="{% url 'project_detail' result.slug %}" class="btn btn-primary btn-sm">View Project</a>
+            {% else %}
+                <h5>File: {{ result.name }}</h5>
+                <p>Title: {{ result.title }}</p>
+                <p>Description: {{ result.description|truncatewords:20 }}</p>
+                <p>Keywords: {{ result.keywords }}</p>
+                <a href="{% url 'file_preview' result.id %}" class="btn btn-primary btn-sm">View File</a>
+            {% endif %}
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No results found for "{{ query }}".</p>
+{% endif %}
+{% endblock %}

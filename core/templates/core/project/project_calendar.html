@@ -1,0 +1,147 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.css' rel='stylesheet' />
+<style>
+    #calendar {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .calendar-controls {
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>{{ project.title }} - Calendar</h1>
+            <p class="lead">{{ project.description }}</p>
+            <a href="{% url 'project_detail' project.slug %}" class="btn btn-secondary mb-3">Back to Project</a>
+            {% if user in project.members.all %}
+                <a href="{% url 'create_event' project.slug %}" class="btn btn-primary mb-3" id="add-event">Add Event</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="calendar-controls">
+                <button id="prev-month" class="btn btn-sm btn-outline-primary">Previous</button>
+                <button id="next-month" class="btn btn-sm btn-outline-primary">Next</button>
+                <button id="today" class="btn btn-sm btn-primary">Today</button>
+            </div>
+            <div id="calendar"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1" role="dialog" aria-labelledby="eventModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalLabel">Add/Edit Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="eventForm">
+                    <div class="mb-3">
+                        <label for="eventTitle" class="form-label">Event Title</label>
+                        <input type="text" class="form-control" id="eventTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="eventStart" class="form-label">Start Time</label>
+                        <input type="datetime-local" class="form-control" id="eventStart" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="eventEnd" class="form-label">End Time</label>
+                        <input type="datetime-local" class="form-control" id="eventEnd" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="eventDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="eventDescription"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveEvent">Save Event</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js'></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        events: '{% url "get_calendar_events" project.slug %}',
+        eventClick: function(info) {
+            // Handle event click (e.g., show event details)
+            alert('Event: ' + info.event.title);
+        }
+    });
+    calendar.render();
+
+    // Calendar control buttons
+    document.getElementById('prev-month').addEventListener('click', function() {
+        calendar.prev();
+    });
+    document.getElementById('next-month').addEventListener('click', function() {
+        calendar.next();
+    });
+    document.getElementById('today').addEventListener('click', function() {
+        calendar.today();
+    });
+
+    // Add event button
+    document.getElementById('add-event').addEventListener('click', function(e) {
+        e.preventDefault();
+        var myModal = new bootstrap.Modal(document.getElementById('eventModal'));
+        myModal.show();
+    });
+
+    // Save event
+    document.getElementById('saveEvent').addEventListener('click', function() {
+        var title = document.getElementById('eventTitle').value;
+        var start = document.getElementById('eventStart').value;
+        var end = document.getElementById('eventEnd').value;
+        var description = document.getElementById('eventDescription').value;
+
+        fetch('{% url "create_calendar_event" project.slug %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                title: title,
+                start: start,
+                end: end,
+                description: description
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            calendar.addEvent(data);
+            var myModal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
+            myModal.hide();
+        })
+        .catch(error => console.error('Error:', error));
+    });
+});
+</script>
+{% endblock %}

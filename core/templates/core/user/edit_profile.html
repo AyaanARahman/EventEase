@@ -1,0 +1,162 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load socialaccount %}
+
+{% block extra_css %}
+<style>
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-control {
+        border-radius: 8px;
+    }
+
+    .google-connect {
+        background-color: #fff;
+        border: 1px solid #e2e8f0;
+        color: #4b5563;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .google-connect:hover {
+        background-color: #f8fafc;
+    }
+
+    .google-status {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+    }
+
+    .google-connected {
+        background-color: #f0fdf4;
+        border: 1px solid #86efac;
+        color: #166534;
+    }
+
+    .google-disconnected {
+        background-color: #fff;
+        border: 1px solid #e2e8f0;
+        color: #4b5563;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="mb-4">Edit Profile</h2>
+
+            <!-- Google Account Connection Section -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Google Account Integration</h5>
+
+                    {% get_social_accounts user as accounts %}
+                    {% with google_account=accounts.google|first %}
+                    {% if google_account %}
+                    <div class="google-status google-connected">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fab fa-google me-2"></i>
+                                Connected to Google Account:
+                                <strong>{{ google_account.extra_data.email }}</strong>
+                            </div>
+                            <form method="post" action="{% url 'socialaccount_connections' %}">
+                                {% csrf_token %}
+                                <button type="submit" name="disconnect" class="btn btn-outline-danger btn-sm">
+                                    Disconnect
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="google-status google-disconnected">
+                        <p class="mb-2">Connect your Google account to enable additional features:</p>
+                        <ul class="mb-3">
+                            <li>Quick sign-in with Google</li>
+                            <li>Calendar integration</li>
+                            <li>Easy file sharing</li>
+                        </ul>
+                        <a href="{% provider_login_url 'google' process='connect' %}"
+                            class="google-connect text-decoration-none">
+                            <i class="fab fa-google"></i>
+                            Connect Google Account
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+
+            <!-- Profile Edit Form -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Profile Information</h5>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <!-- Name Fields -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                <input type="text" name="{{ form.first_name.html_name }}"
+                                    id="{{ form.first_name.id_for_label }}"
+                                    value="{{ form.first_name.value|default:'' }}" class="form-control">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                <input type="text" name="{{ form.last_name.html_name }}"
+                                    id="{{ form.last_name.id_for_label }}" value="{{ form.last_name.value|default:'' }}"
+                                    class="form-control">
+                            </div>
+                        </div>
+
+                        <!-- Email Field -->
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                            <input type="email" name="{{ form.email.html_name }}" id="{{ form.email.id_for_label }}"
+                                value="{{ form.email.value|default:'' }}" class="form-control">
+                        </div>
+
+                        <!-- Interests Field -->
+                        <div class="mb-3">
+                            <label for="{{ form.interests.id_for_label }}" class="form-label">Interests</label>
+                            <textarea name="{{ form.interests.html_name }}" id="{{ form.interests.id_for_label }}"
+                                class="form-control">{{ form.interests.value|default:'' }}</textarea>
+                        </div>
+
+                        <!-- Profile Picture -->
+                        <div class="mb-4">
+                            <label for="{{ form.profile_picture.id_for_label }}" class="form-label">Profile
+                                Picture</label>
+                            <input type="file" name="{{ form.profile_picture.html_name }}"
+                                id="{{ form.profile_picture.id_for_label }}" class="form-control">
+                            {% if form.profile_picture.value %}
+                            <div class="mt-2">
+                                <img src="{{ form.profile_picture.value.url }}" alt="Current Profile Picture"
+                                    class="img-thumbnail" style="max-width: 200px;">
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Update Profile
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

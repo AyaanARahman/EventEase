@@ -1,0 +1,63 @@
+{% extends "core/base.html" %}
+{% block content %}
+<div class="container mt-5">
+        <div class="row align-items-center">
+    {% if organization.organization_picture %}
+            <div class="col-auto">
+                <img src="{{ organization.organization_picture.url }}" alt="Profile picture for {{ organization.name }}"
+                     class="img-fluid rounded-circle" style="width: 75px; height: 75px; object-fit: cover;">
+            </div>
+    {% endif %}
+        <div class="col">
+            <h1>{{ organization.name }}</h1>
+        </div>
+    </div>
+
+    <p>{{ organization.description }}</p>
+    
+    {% if is_owner %}
+    <div class="mb-3">
+        <a href="{% url 'manage_organization' organization.slug %}" class="btn btn-primary">Manage Organization</a>
+        <a href="{% url 'manage_organization_members' organization.slug %}" class="btn btn-info">Manage Members</a>
+        <a href="{% url 'manage_join_requests' organization.slug %}" class="btn btn-info">Manage Join Requests</a>
+    </div>
+    {% endif %}
+    {% if is_member and not is_owner %}
+    <div class="mb-3">
+        <a href="{% url 'leave_organization' organization.slug %}" class="btn btn-danger">Leave Organization</a>
+    </div>
+    {% endif %}
+
+    <h2>Projects</h2>
+    {% if projects %}
+        <ul>
+        {% for project in projects %}
+            <li><a href="{% url 'project_detail' project.slug %}">{{ project.title }}</a></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No projects in this organization yet.</p>
+    {% endif %}
+
+    <h2>Members</h2>
+    {% if members %}
+        <ul>
+        {% for member in members %}
+            <li>{{ member.username }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No members in this organization yet.</p>
+    {% endif %}
+
+    {% if not is_member and not is_owner %}
+        {% if has_pending_request %}
+            <p>Your request to join this organization is pending.</p>
+        {% else %}
+            <a href="{% url 'request_to_join_organization' organization.slug %}" class="btn btn-success">Request to Join</a>
+        {% endif %}
+    {% endif %}
+
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+{% endblock %}

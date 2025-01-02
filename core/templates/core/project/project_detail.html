@@ -1,0 +1,332 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/project-detail.css' %}">
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>{{ project.title }}</h1>
+            <p class="lead">{{ project.description }}</p>
+            <p><strong>Created by:</strong> {{ project.owner.username }}</p>
+            <p><strong>Created at:</strong> {{ project.created_at|date:"F d, Y H:i" }}</p>
+            <p><strong>Status:</strong>
+                <span class="badge bg-{{ project.status }}" style="color: red;">
+                    {{ project.get_status_display }}
+                </span>
+            </p>
+            {% if user == project.owner %}
+            <a href="{% url 'edit_project' project.slug %}" class="btn btn-primary">Edit Project</a>
+            {% endif %}
+
+            {% if user == project.owner or user.userprofile.user_type == 'pma_admin'%}
+            <a href="{% url 'manage_members' project.slug %}" class="btn btn-info">Manage Members</a>
+            <a href="{% url 'delete_project' project.slug %}" class="btn btn-danger">Delete Project</a>
+            {% endif %}
+            {% if user in project.members.all and user != project.owner %}
+            <a href="{% url 'leave_project' project.slug %}" class="btn btn-warning">Leave Project</a>
+            {% endif %}
+            {% if not is_member and not is_owner and not has_pending_request %}
+                <a href="{% url 'request_to_join_project' project.slug %}" class="btn btn-success">Request to Join</a>
+            {% elif has_pending_request %}
+                <span class='badge bg-warning'>Join Request Pending</span>
+            {% endif %}
+
+            {% if is_owner %}
+                <a href="{% url 'manage_project_join_requests' project.slug %}" class="btn btn-info">Manage Join Requests</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Project Files</h3>
+                </div>
+                <div class="card-body">
+                    {% if project.files.exists %}
+                    <ul class="list-group">
+                        {% for file in project.files.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="{% url 'file_preview' file.id %}">{{ file.name }}</a>
+                            <div>
+                                <a href="{% url 'download_file' project.slug file.id %}"
+                                    class="btn btn-sm btn-success">Download</a>
+                                {% if user == project.owner or user == file.uploaded_by or user.userprofile.user_type == 'pma_admin'%}
+                                <a href="{% url 'delete_file' project.slug file.id %}"
+                                    class="btn btn-sm btn-danger">Delete</a>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>No files uploaded yet.</p>
+                    {% endif %}
+                    {% if user in project.members.all %}
+                    <a href="{% url 'upload_file' project.slug %}" class="btn btn-primary mt-3">Upload File</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Project Members</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for membership in project.memberships.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ membership.user.username }}
+                            <span class="badge bg-primary">{{ membership.get_role_display }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="card-body">
+        {% if project.activities.exists %}
+            <div class="timeline">
+                {% for activity in project.activities.all|slice:":10" %}
+                    <div class="activity-item mb-3">
+                        <div class="d-flex align-items-start">
+                            {% if activity.user.userprofile.profile_picture %}
+                                <img src="{{ activity.user.userprofile.profile_picture.url }}" 
+                                     class="rounded-circle me-2" 
+                                     width="32" height="32">
+                            {% endif %}
+                            <div>
+                                <p class="mb-0">{{ activity.description }}</p>
+                                <small class="text-muted">
+                                    {{ activity.created_at|timesince }} ago
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No recent activities.</p>
+        {% endif %}
+    </div> -->
+    <!-- Added logic for fetching recent logic but leaving commented out for now -->
+
+        {% if is_member or is_owner or user.userprofile.user_type == 'pma_admin' %}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Announcements</h3>
+                </div>
+                <div class="card-body"{% if announcements.count > 4 %} style="max-height: 300px; overflow-y: auto;"{% endif %}>
+                    {% if announcements %}
+                        {% for announcement in announcements %}
+                        <div class="list-group-item d-flex align-items-start mb-3">
+                            {% if announcement.user.userprofile.profile_picture %}
+                                <img src="{{ announcement.user.userprofile.profile_picture.url }}" alt="Profile Picture"
+                                    class="profile-picture rounded-circle" width="40" height="40" style="margin-right: 15px;">
+                            {% else %}
+                                <img src="{% static 'images/default_profile_picture.png' %}" alt="Default Profile Picture"
+                                    class="profile-picture rounded-circle" width="40" height="40" style="margin-right: 15px;">
+                            {% endif %}
+                            <div class="announcement-content">
+                                <p>{{ announcement.content }}</p>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar-date"></i> Posted by
+                                    <strong>{{ announcement.user.username }}</strong>
+                                    on {{ announcement.created_at|date:"F d, Y" }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+        
+                {% if user in project.members.all %}
+                    <a href="{% url 'post_announcement' project.slug %}" class="btn btn-primary mt-3">Post Announcement</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+
+         <!--  <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Todo Items</h3>
+                </div>
+                <div class="card-body">
+                    {% if todos %}
+                    <ul class="list-group">
+                        {% for todo in todos %}
+                        <li class="list-group-item">
+                            <input type="checkbox" {% if todo.completed %}checked{% endif %}>
+                            {{ todo.title }}
+                            <span class="badge bg-{{ todo.priority }}">{{ todo.get_priority_display }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% if project.todos.count > 5 %}
+                    <a href="{% url 'project_todos' project.slug %}" class="btn btn-link">View all todos</a>
+                    {% endif %}
+                    {% else %}
+                    <p>No todo items yet.</p>
+                    {% endif %}
+                    {% if user in project.members.all %}
+                    <a href="{% url 'create_todo' project.slug %}" class="btn btn-primary mt-3">Add Todo</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div> -->
+
+    {% if is_member or is_owner or user.userprofile.user_type == 'pma_admin' %}
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Upcoming Events</h3>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_events %}
+                        <ul class="list-group">
+                            {% for event in upcoming_events %}
+                            <li class="list-group-item">
+                                {{ event.title }}
+                                <br>
+                                {{ event.start_time|date:"F d, Y H:i" }} - {{ event.end_time|date:"F d, Y H:i" }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% if project.events.count > 5 %}
+                            <a href="{% url 'project_calendar' project.slug %}" class="btn btn-link">View full calendar</a>
+                        {% endif %}
+                    {% else %}
+                        <p>No upcoming events.</p>
+                    {% endif %}
+                    {% if user in project.members.all %}
+                        <a href="{% url 'create_event' project.slug %}" class="btn btn-primary mt-3">Add Event</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if is_member or is_owner or user.userprofile.user_type == 'pma_admin' %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3>Budget Tracker</h3>
+            </div>
+            <div class="card-body">
+                <div class="budget-summary">
+                    <p><strong>Total Income:</strong> ${{ total_income }}</p>
+                    <p><strong>Total Expenses:</strong> ${{ total_expenses }}</p>
+                    <p><strong>Balance:</strong> ${{ budget_balance }}</p>
+                </div>
+                <h4 class="mt-3">Recent Budget Items</h4>
+                {% if budget_items %}
+                <ul class="list-group">
+                    {% for item in budget_items %}
+                    <li class="list-group-item">
+                        {{ item.description }} -
+                        {% if item.is_expense %}
+                            <span class="text-danger">-${{ item.amount|floatformat:2 }}</span>
+                        {% else %}
+                            <span class="text-success">+${{ item.amount|floatformat:2 }}</span>
+                        {% endif %}
+                        ({{ item.date|date:"M. j, Y" }})
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% if budget_items.count > 5 %}
+                    <a href="#" class="btn btn-link">View all budget items</a>
+                {% endif %}
+                {% else %}
+                    <p>No budget items yet.</p>
+                {% endif %}
+                <a href="{% url 'add_budget_item' project.slug %}" class="btn btn-primary mt-3">Add Budget Item</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+<!-- File Preview Modal -->
+<div class="modal fade" id="filePreviewModal" tabindex="-1" role="dialog" aria-labelledby="filePreviewModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filePreviewModalLabel">File Preview</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="pdfViewer" style="height: 600px;"></div>
+                <pre id="textViewer" style="max-height: 600px; overflow-y: auto;"></pre>
+                <div id="unsupportedViewer">
+                    <p>Preview not available for this file type.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('.preview-file').click(function () {
+            var fileId = $(this).data('file-id');
+            $('#pdfViewer').hide();
+            $('#textViewer').hide();
+            $('#unsupportedViewer').hide();
+
+            $.get('/file-preview/' + fileId + '/', function (data) {
+                if (data.type === 'text') {
+                    $('#textViewer').text(data.content).show();
+                    $('#filePreviewModal').modal('show');
+                } else if (data.type === 'unsupported') {
+                    $('#unsupportedViewer').show();
+                    $('#filePreviewModal').modal('show');
+                } else {
+                    var loadingTask = pdfjsLib.getDocument('/file-preview/' + fileId + '/');
+                    loadingTask.promise.then(function (pdf) {
+                        pdf.getPage(1).then(function (page) {
+                            var scale = 1.5;
+                            var viewport = page.getViewport({ scale: scale });
+                            var canvas = document.createElement('canvas');
+                            var context = canvas.getContext('2d');
+                            canvas.height = viewport.height;
+                            canvas.width = viewport.width;
+
+                            var renderContext = {
+                                canvasContext: context,
+                                viewport: viewport
+                            };
+                            page.render(renderContext);
+
+                            $('#pdfViewer').html(canvas).show();
+                            $('#filePreviewModal').modal('show');
+                        });
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>{{ event.title }}</h1>
+    
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Event Details</h5>
+            <p class="card-text"><strong>Start:</strong> {{ event.start_time|date:"F d, Y H:i" }}</p>
+            <p class="card-text"><strong>End:</strong> {{ event.end_time|date:"F d, Y H:i" }}</p>
+            {% if event.location %}
+                <p class="card-text"><strong>Location:</strong> {{ event.location }}</p>
+            {% endif %}
+            {% if event.description %}
+                <p class="card-text"><strong>Description:</strong> {{ event.description }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Add Todo Item</h5>
+            <form method="post">
+                {% csrf_token %}
+                {{ todo_form.as_p }}
+                <button type="submit" class="btn btn-primary">Add Todo</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Todo Items</h5>
+            {% if todos %}
+                <ul class="list-group">
+                    {% for todo in todos %}
+                        <li class="list-group-item">
+                            <strong>{{ todo.title }}</strong>
+                            <span class="badge bg-{{ todo.priority }}">{{ todo.get_priority_display }}</span>
+                            {% if todo.due_date %}
+                                <small class="text-muted">Due: {{ todo.due_date }}</small>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No todo items for this project yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <h5>Associated Project</h5>
+        <p><a href="{% url 'project_detail' event.project.slug %}">{{ event.project.title }}</a></p>
+    </div>
+
+    <div class="mb-3">
+        <a href="{% url 'project_detail' event.project.slug %}" class="btn btn-secondary">Back to Project</a>
+        {% if user == event.user or user == event.project.owner %}
+            <a href="{% url 'edit_event' event.id %}" class="btn btn-primary">Edit Event</a>
+            <a href="{% url 'delete_event' event.id %}" class="btn btn-danger">Delete Event</a>
+        </div>
+    {% endif %}
+
+    <a href="{% url 'project_calendar' event.project.slug %}" class="btn btn-secondary">Back to Project Calendar</a>
+</div>
+{% endblock %}

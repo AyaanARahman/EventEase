@@ -1,0 +1,11 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<h1>Confirm Delete File</h1>
+<p>Are you sure you want to delete the file from project "{{ project.title }}"?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Yes, delete</button>
+</form>
+<a href="{% url 'dashboard' %}">No, go back</a>
+{% endblock %}

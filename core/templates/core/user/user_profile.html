@@ -1,0 +1,255 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .profile-header {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .profile-picture {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .organization-card {
+        transition: transform 0.2s;
+    }
+
+    .organization-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #0d6efd;
+    }
+
+    .project-card {
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .project-card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center text-md-start">
+                {% if user.userprofile.profile_picture %}
+                <img src="{{ user.userprofile.profile_picture.url }}" alt="Profile Picture"
+                    class="profile-picture rounded-circle">
+                {% else %}
+                <img src="{% static 'images/default_profile_picture.png' %}" alt="Default Profile Picture"
+                    class="profile-picture rounded-circle">
+                {% endif %}
+            </div>
+            <div class="col-md-9">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h2 class="mb-1">{{ user.get_full_name|default:user.username }}</h2>
+                        <p class="text-muted mb-2">@{{ user.username }}</p>
+                        {% if user.email %}
+                        <p class="mb-2"><i class="fas fa-envelope me-2"></i>{{ user.email }}</p>
+                        {% endif %}
+                        <p><i class="fas fa-user-tag me-2"></i>{{ user.userprofile.get_user_type_display }}</p>
+                        <p><i class="fas fa-calendar-alt me-2"></i>Joined {{ user.userprofile.join_date|date:"F d, Y" }}</p>
+
+                    </div>
+                    {% if request.user == user %}
+                    <a href="{% url 'edit_profile' username=user.username %}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Profile
+                    </a>
+                    {% endif %}
+            </div>
+        </div>
+    </div>
+    <!-- Statistics Row -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-number">{{ user.owned_organizations.count }}</div>
+                <div class="text-muted">Organizations Owned</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-number">{{ user.organizations.count }}</div>
+                <div class="text-muted">Member Of</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-number">{{ user.owned_projects.count }}</div>
+                <div class="text-muted">Projects Owned</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-number">{{ user.project_memberships.count }}</div>
+                <div class="text-muted">Project Memberships</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Organizations Section -->
+    <h3 class="mb-4">Organizations</h3>
+
+    <!-- Owned Organizations -->
+    {% if user.owned_organizations.exists %}
+    <h5 class="mb-3">Organizations Owned</h5>
+    <div class="row mb-4">
+        {% for org in user.owned_organizations.all %}
+        <div class="col-md-4 mb-3">
+            <div class="card organization-card h-100">
+                <div class="card-body">
+                    {% if org.organization_picture %}
+                    <img src="{{ org.organization_picture.url }}" alt="{{ org.name }}" class="card-img-top mb-3"
+                        style="height: 150px; object-fit: cover;">
+                    {% endif %}
+                    <h5 class="card-title">{{ org.name }}</h5>
+                    <p class="card-text text-muted">{{ org.description|truncatewords:20 }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-primary">Owner</span>
+                        <a href="{% url 'organization_detail' slug=org.slug %}"
+                            class="btn btn-outline-primary btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Member Organizations -->
+    {% if user.organizations.exists %}
+    <h5 class="mb-3">Member Of</h5>
+    <div class="row">
+        {% for org in user.organizations.all %}
+        {% if org.owner != user %} <!-- Don't show organizations the user owns here -->
+        <div class="col-md-4 mb-3">
+            <div class="card organization-card h-100">
+                <div class="card-body">
+                    {% if org.organization_picture %}
+                    <img src="{{ org.organization_picture.url }}" alt="{{ org.name }}" class="card-img-top mb-3"
+                        style="height: 150px; object-fit: cover;">
+                    {% endif %}
+                    <h5 class="card-title">{{ org.name }}</h5>
+                    <p class="card-text text-muted">{{ org.description|truncatewords:20 }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-secondary">Member</span>
+                        <a href="{% url 'organization_detail' slug=org.slug %}"
+                            class="btn btn-outline-primary btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not user.owned_organizations.exists and not user.organizations.exists %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>This user is not a member of any organizations yet.
+    </div>
+    {% endif %}
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="card-title h5 mb-0"><i class="fas fa-info-circle me-2"></i>About</h3>
+                </div>
+                <div class="card-body">
+                    <p><strong>Interests:</strong><br>{{ user.userprofile.interests|default:"Not specified" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="card-title h5 mb-0"><i class="fas fa-project-diagram me-2"></i>Projects</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="projectTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="owned-tab" data-bs-toggle="tab" data-bs-target="#owned"
+                                type="button" role="tab" aria-controls="owned" aria-selected="true">Owned</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="member-tab" data-bs-toggle="tab" data-bs-target="#member"
+                                type="button" role="tab" aria-controls="member" aria-selected="false">Member</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content mt-3" id="projectTabsContent">
+                        <div class="tab-pane fade show active" id="owned" role="tabpanel" aria-labelledby="owned-tab">
+                            <div class="row">
+                                {% for project in user.owned_projects.all %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card project-card h-100">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ project.title }}</h5>
+                                            <p class="card-text">{{ project.description|truncatewords:20 }}</p>
+                                            <a href="{% url 'project_detail' project.slug %}"
+                                                class="btn btn-sm btn-outline-primary">View Project</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p class="text-muted">No owned projects.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="member" role="tabpanel" aria-labelledby="member-tab">
+                            <div class="row">
+                                {% for membership in user.project_memberships.all %}
+                                {% if membership.project.owner != user %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card project-card h-100">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ membership.project.title }}</h5>
+                                            <p class="card-text">{{ membership.project.description|truncatewords:20 }}
+                                            </p>
+                                            <p class="card-text"><small class="text-muted">Role: {{ membership.get_role_display }}</small></p>
+                                            <a href="{% url 'project_detail' membership.project.slug %}"
+                                                class="btn btn-sm btn-outline-primary">View Project</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% empty %}
+                                <p class="text-muted">Not a member of any projects.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

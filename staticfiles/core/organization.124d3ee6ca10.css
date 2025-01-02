@@ -1,0 +1,54 @@
+.organization-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.organization-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.organization-card .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.organization-card .card-text {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.organization-card .badge {
+    font-weight: 500;
+    padding: 0.5em 0.8em;
+}
+
+.filter-btn {
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+    transform: translateY(-2px);
+}
+
+.feed-header {
+    position: relative;
+    overflow: hidden;
+}
+
+.feed-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(0,123,255,0.1), rgba(0,123,255,0));
+    z-index: 0;
+}
+
+.feed-header > * {
+    position: relative;
+    z-index: 1;
+}

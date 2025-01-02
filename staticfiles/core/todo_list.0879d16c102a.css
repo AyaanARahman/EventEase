@@ -1,0 +1,47 @@
+#todo-list {
+    height: 300px;
+    overflow-y: auto;
+}
+
+.todo-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.todo-item.completed {
+    text-decoration: line-through;
+    color: #888;
+}
+
+.todo-text {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.todo-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.edit-mode .todo-text {
+    display: none;
+}
+
+.edit-mode .edit-input {
+    display: block !important;
+}
+
+.edit-input {
+    display: none;
+}
+
+#todo-filters {
+    margin-bottom: 10px;
+}
+
+#todo-filters button {
+    margin-right: 5px;
+}

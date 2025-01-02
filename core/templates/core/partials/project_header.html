@@ -1,0 +1,24 @@
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h1 class="mb-0">{{ project.title }}</h1>
+        <p class="text-muted mb-2">
+            Created by {{ project.owner.username }} on {{ project.created_at|date:"F d, Y" }}
+        </p>
+        <span class="badge bg-{{ project.status }}">{{ project.get_status_display }}</span>
+        {% if project.organization %}
+            <span class="badge bg-info">{{ project.organization.name }}</span>
+        {% endif %}
+    </div>
+    <div class="col-auto">
+        {% if is_owner %}
+            <div class="btn-group">
+                <a href="{% url 'edit_project' project.slug %}" 
+                   class="btn btn-primary">Edit Project</a>
+                <a href="{% url 'manage_members' project.slug %}" 
+                   class="btn btn-info">Manage Members</a>
+                <a href="{% url 'delete_project' project.slug %}" 
+                   class="btn btn-danger">Delete Project</a>
+            </div>
+        {% endif %}
+    </div>
+</div>

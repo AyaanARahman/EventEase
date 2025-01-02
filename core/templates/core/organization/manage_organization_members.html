@@ -1,0 +1,44 @@
+{% extends "core/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Manage Members - {{ organization.name }}</h2>
+    
+    <h3>Current Members</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for membership in memberships %}
+            <tr>
+                <td>{{ membership.user.username }}</td>
+                <td>{{ membership.get_role_display }}</td>
+                <td>
+                    {% if membership.user != organization.owner %}
+                    <form method="post" action="{% url 'remove_organization_member' organization.slug membership.user.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Add New Member</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-primary">Add Member</button>
+    </form>
+
+    <a href="{% url 'organization_detail' organization.slug %}" class="btn btn-secondary mt-3">Back to Organization</a>
+</div>
+{% endblock %}

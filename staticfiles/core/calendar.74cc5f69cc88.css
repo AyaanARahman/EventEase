@@ -1,0 +1,11 @@
+/* Calendar Styles */
+#calendar {
+    width: 100%;
+    height: 400px;
+    max-height: 400px;
+    overflow: auto;
+}
+
+.calendar-controls {
+    margin-bottom: 10px;
+}

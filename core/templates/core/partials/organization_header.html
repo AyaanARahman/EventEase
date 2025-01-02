@@ -1,0 +1,23 @@
+
+<div class="row align-items-center mb-4">
+    {% if organization.organization_picture %}
+        <div class="col-auto">
+            <img src="{{ organization.organization_picture.url }}"
+                 alt="{{ organization.name }}"
+                 class="img-fluid rounded-circle"
+                 style="width: 75px; height: 75px; object-fit: cover;">
+        </div>
+    {% endif %}
+    <div class="col">
+        <h1 class="mb-0">{{ organization.name }}</h1>
+        <p class="text-muted mb-0">Owner: {{ organization.owner.username }}</p>
+    </div>
+    {% if is_owner %}
+        <div class="col-auto">
+            <a href="{% url 'manage_organization' organization.slug %}" 
+               class="btn btn-primary">Manage Organization</a>
+            <a href="{% url 'manage_organization_members' organization.slug %}" 
+               class="btn btn-info">Manage Members</a>
+        </div>
+    {% endif %}
+</div>

@@ -1,0 +1,462 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}User Dashboard{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/quick_stats.css' %}" rel="stylesheet">
+<link href="{% static 'core/calendar.css' %}" rel="stylesheet">
+<link href="{% static 'core/todo_list.css' %}" rel="stylesheet">
+
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">User Dashboard</h1>
+    <p>Welcome, {{ user.username }}! ({{ user.email }})</p>
+
+    <div class="search-bar">
+        <form action="{% url 'search' %}" method="GET" class="form-inline">
+            <div class="input-group w-100">
+                <input type="text" name="q" class="form-control"
+                    placeholder="Search for organizations, projects, or users...">
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Include Quick Stats Partial -->
+    {% include 'core/partials/quick_stats.html' %}
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title h5 mb-0">Calendar</h2>
+                </div>
+                <div class="card-body">
+                    <div class="calendar-controls">
+                        {% if user.is_authenticated %}
+                        <button id="add-event" class="btn btn-sm btn-success">Add Event</button>
+                        {% endif %}
+                    </div>
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title h5 mb-0">To-Do List</h2>
+                </div>
+                <div class="card-body">
+                    <div id="todo-filters">
+                        <button class="btn btn-sm btn-outline-primary filter-btn active" data-filter="all">All</button>
+                        <button class="btn btn-sm btn-outline-primary filter-btn" data-filter="active">Active</button>
+                        <button class="btn btn-sm btn-outline-primary filter-btn"
+                            data-filter="completed">Completed</button>
+                    </div>
+                    <div id="todo-list" data-user-id="{{ user.id }}"></div>
+                    <form id="add-todo-form" class="mt-3">
+                        <div class="input-group">
+                            <input type="text" id="new-todo" class="form-control" placeholder="New task" required>
+                            <button type="submit" class="btn btn-primary">Add</button>
+                        </div>
+                    </form>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span id="todo-count"></span>
+                        <button id="clear-completed" class="btn btn-sm btn-outline-danger">Clear Completed</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-md-8">
+            <!-- Your Projects Section -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Your Projects</h4>
+                    <a href="{% url 'create_project' %}" class="btn btn-primary btn-sm">Create New Project</a>
+                </div>
+                <div class="card-body">
+                    <h5 class="mb-3">Projects You Own</h5>
+                    <div class="row">
+                        {% for project in user_projects %}
+                        <div class="col-md-6 mb-3">
+                            {% include 'core/partials/project_card.html' with project=project show_actions=True %}
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <p class="text-muted">You don't have any projects yet.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Projects You're a Member Of -->
+                    <h5 class="mb-3 mt-4">Projects You're a Member Of</h5>
+                    <div class="row">
+                        {% for project in member_projects %}
+                        <div class="col-md-6 mb-3">
+                            {% include 'core/partials/project_card.html' with project=project %}
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <p class="text-muted">You're not a member of any projects yet.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-md-4">
+            <!-- Organizations Section -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Organizations</h4>
+                    <a href="{% url 'create_organization' %}" class="btn btn-primary btn-sm">Create New</a>
+                </div>
+                <div class="card-body">
+                    {% if user.owned_organizations.exists %}
+                    <h5 class="mb-3">Organizations You Own</h5>
+                    {% for org in user.owned_organizations.all %}
+                    {% include 'core/partials/organization_card.html' with organization=org is_owner=True %}
+                    {% endfor %}
+                    {% endif %}
+
+                    {% if user_organizations %}
+                    <h5 class="mb-3 {% if user.owned_organizations.exists %}mt-4{% endif %}">Member Organizations</h5>
+                    {% for org in user_organizations %}
+                    {% if org.owner != user %}
+                    {% include 'core/partials/organization_card.html' with organization=org is_member=True %}
+                    {% endif %}
+                    {% endfor %}
+                    {% endif %}
+
+                    {% if not user.owned_organizations.exists and not user_organizations %}
+                    <p class="text-muted">You're not a member of any organizations yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+
+            <!-- Event Modal -->
+            <div class="modal fade" id="eventModal" tabindex="-1" role="dialog" aria-labelledby="eventModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="eventModalLabel">Add/Edit Event</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="eventForm">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="eventTitle" class="form-label">Event Title</label>
+                                    <input type="text" class="form-control" id="eventTitle" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="eventProject" class="form-label">Project</label>
+                                    <select class="form-control" id="eventProject" required>
+                                        <option value="">Select a project...</option>
+                                        {% for project in user_projects %}
+                                        <option value="{{ project.id }}" data-slug="{{ project.slug }}">{{ project.title }} </option>
+                                        {% endfor %}
+                                        {% for project in member_projects %}
+                                        <option value="{{ project.id }}" data-slug="{{ project.slug }}">{{ project.title }} (Member)</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="eventStart" class="form-label">Start Time</label>
+                                    <input type="datetime-local" class="form-control" id="eventStart" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="eventEnd" class="form-label">End Time</label>
+                                    <input type="datetime-local" class="form-control" id="eventEnd" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="eventDescription" class="form-label">Description</label>
+                                    <textarea class="form-control" id="eventDescription"></textarea>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="saveEvent">Save Event</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endblock %}
+
+            {% block extra_js %}
+            <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js'></script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    console.log("Calendar DOM fully loaded");
+
+                    // Initialize Calendar
+                    var calendarEl = document.getElementById('calendar');
+                    var calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        height: 'auto',
+                        events: '{% url "get_calendar_events" %}',
+                        eventClick: function (info) {
+                            // Handle event click (ex. show event details)
+                            alert('Event: ' + info.event.title);
+                        },
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                        }
+                    });
+                    calendar.render();
+
+                    // Add event button
+                    document.getElementById('add-event').addEventListener('click', function () {
+                        var myModal = new bootstrap.Modal(document.getElementById('eventModal'));
+                        myModal.show();
+                    });
+
+                    function formatDateForDjango(dateString) {
+                        // If dateString is already in correct format (YYYY-MM-DDTHH:MM), return as is
+                        if (dateString.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)) {
+                            return dateString;
+                        }
+
+                        const date = new Date(dateString);
+
+                        // Ensure valid date
+                        if (isNaN(date.getTime())) {
+                            throw new Error('Invalid date');
+                        }
+
+                        return date.getFullYear() +
+                            '-' + String(date.getMonth() + 1).padStart(2, '0') +
+                            '-' + String(date.getDate()).padStart(2, '0') +
+                            'T' + String(date.getHours()).padStart(2, '0') +
+                            ':' + String(date.getMinutes()).padStart(2, '0');
+                    }
+
+                    // Save event
+                    document.getElementById('saveEvent').addEventListener('click', function () {
+                        var title = document.getElementById('eventTitle').value;
+                        const projectSelect = document.getElementById('eventProject');
+                        const projectId = projectSelect.value;
+                        var start = document.getElementById('eventStart').value;
+                        var end = document.getElementById('eventEnd').value;
+                        var description = document.getElementById('eventDescription').value;
+
+                        // Validation
+                        if (!title || !projectId || !start || !end) {
+                            alert('Please fill in all required fields');
+                            return;
+                        }
+
+                        // Validate dates
+                        const startDate = new Date(start);
+                        const endDate = new Date(end);
+
+                        if (endDate <= startDate) {
+                            alert('End time must be after start time');
+                            return;
+                        }
+
+                        const eventData = {
+                            title: title,
+                            project_id: projectId,
+                            start: formatDateForDjango(start),
+                            end: formatDateForDjango(end),
+                            description: description
+                        };
+
+                        // Send data to backend
+                        fetch('/create_calendar_event/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                            },
+                            body: JSON.stringify(eventData)
+                        })
+                            .then(response => {
+                                console.log('Response status:', response.status);
+                                if (!response.ok) {
+                                    return response.text().then(text => {
+                                        console.log('Error response text:', text);
+                                        try {
+                                            const error = JSON.parse(text);
+                                            throw new Error(error.error || 'Failed to save event');
+                                        } catch (e) {
+                                            throw new Error('Failed to save event: ' + text);
+                                        }
+                                    });
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                console.log('Success response:', data);
+
+                                // Add event to calendar
+                                calendar.addEvent({
+                                    id: data.id,
+                                    title: data.title,
+                                    start: data.start,
+                                    end: data.end,
+                                    description: data.description
+                                });
+
+                                // Close modal and reset form
+                                var myModal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
+                                myModal.hide();
+                                document.getElementById('eventForm').reset();
+
+                                // Show success message
+                                alert('Event created successfully!');
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert(error.message || 'Error saving event. Please try again.');
+                            });
+                    });
+                });
+            </script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    console.log("Todo List DOM fully loaded");
+                    // Initialize To-Do List
+                    const todoList = document.getElementById('todo-list');
+                    const addTodoForm = document.getElementById('add-todo-form');
+                    const newTodoInput = document.getElementById('new-todo');
+                    const todoCount = document.getElementById('todo-count');
+                    const clearCompletedBtn = document.getElementById('clear-completed');
+                    const filterBtns = document.querySelectorAll('.filter-btn');
+                    let currentFilter = 'all';
+
+                    // get current user ID from data attribute
+                    const currentUserId = document.getElementById('todo-list').dataset.userId;
+
+                    // update storage key to be user specific
+                    const storageKey = `todos_${currentUserId}`;
+                    let todos = JSON.parse(localStorage.getItem(storageKey)) || [];
+                    // filtering todos that dont belong to user
+                    todos = todos.filter(todo => todo.userId === currentUserId);
+                    function saveTodos() {
+                        localStorage.setItem(storageKey, JSON.stringify(todos));
+                    }
+
+                    function renderTodos() {
+                        todoList.innerHTML = '';
+                        let visibleTodos = todos;
+                        if (currentFilter === 'active') {
+                            visibleTodos = todos.filter(todo => !todo.completed);
+                        } else if (currentFilter === 'completed') {
+                            visibleTodos = todos.filter(todo => todo.completed);
+                        }
+                        visibleTodos.forEach(renderTodoItem);
+                        updateTodoCount();
+                    }
+
+                    function renderTodoItem(todo) {
+                        const todoItem = document.createElement('div');
+                        todoItem.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+                        todoItem.innerHTML = `
+        <span class="todo-text">${todo.text}</span>
+        <input type="text" class="form-control edit-input" value="${todo.text}">
+        <div class="todo-actions">
+            <button class="btn btn-sm btn-outline-success complete-btn">${todo.completed ? 'Undo' : 'Complete'}</button>
+            <button class="btn btn-sm btn-outline-primary edit-btn">Edit</button>
+            <button class="btn btn-sm btn-outline-danger delete-btn">Delete</button>
+        </div>
+    `;
+                        todoList.appendChild(todoItem);
+
+                        const completeBtn = todoItem.querySelector('.complete-btn');
+                        const editBtn = todoItem.querySelector('.edit-btn');
+                        const deleteBtn = todoItem.querySelector('.delete-btn');
+                        const todoText = todoItem.querySelector('.todo-text');
+                        const editInput = todoItem.querySelector('.edit-input');
+
+                        completeBtn.addEventListener('click', () => {
+                            todo.completed = !todo.completed;
+                            saveTodos();
+                            renderTodos();
+                        });
+
+                        editBtn.addEventListener('click', () => {
+                            todoItem.classList.toggle('edit-mode');
+                            if (todoItem.classList.contains('edit-mode')) {
+                                editInput.focus();
+                            } else {
+                                todo.text = editInput.value;
+                                saveTodos();
+                                renderTodos();
+                            }
+                        });
+
+                        deleteBtn.addEventListener('click', () => {
+                            todos = todos.filter(t => t !== todo);
+                            saveTodos();
+                            renderTodos();
+                        });
+
+                        editInput.addEventListener('keypress', (e) => {
+                            if (e.key === 'Enter') {
+                                todoItem.classList.remove('edit-mode');
+                                todo.text = editInput.value;
+                                saveTodos();
+                                renderTodos();                            
+                            }
+                        });
+                    }
+
+                    function updateTodoCount() {
+                        const activeTodos = todos.filter(todo => !todo.completed).length;
+                        todoCount.textContent = `${activeTodos} item${activeTodos !== 1 ? 's' : ''} left`;
+                    }
+
+                    addTodoForm.addEventListener('submit', function (e) {
+                        e.preventDefault();
+                        if (newTodoInput.value.trim()) {
+                            todos.push({ 
+                                text: newTodoInput.value.trim(), 
+                                completed: false,
+                                userId: currentUserId
+                            });
+                            saveTodos();
+                            newTodoInput.value = '';
+                            renderTodos();
+                        }
+                    });
+
+                    clearCompletedBtn.addEventListener('click', () => {
+                        todos = todos.filter(todo => !todo.completed);
+                        saveTodos();
+                        renderTodos();
+                    });
+
+                    filterBtns.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            currentFilter = btn.dataset.filter;
+                            filterBtns.forEach(b => b.classList.remove('active'));
+                            btn.classList.add('active');
+                            renderTodos();
+                        });
+                    });
+
+                    renderTodos();
+                    
+                });
+
+            </script>
+            {% endblock %}

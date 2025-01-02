@@ -1,0 +1,38 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Post Announcement for {{ project.title }}</h1>
+    <form method="post" action="{% url 'post_announcement' project.slug %}">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label for="content" class="form-label">Announcement Message</label>
+            <textarea class="form-control" id="content" name="content" rows="5" required>{{ form.content.value|default:'' }}</textarea>
+            {% if form.content.errors %}
+                <div class="text-danger">
+                    {% for error in form.content.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Post Announcement</button>
+        <a href="{% url 'project_detail' project.slug %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% if form.errors %}
+    <div class="alert alert-danger">
+        <strong>There were some errors with your submission:</strong>
+        <ul>
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+{% endblock %}

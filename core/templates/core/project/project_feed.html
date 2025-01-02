@@ -1,0 +1,106 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/project_feed.css' %}">
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const projectFilter = new FeedFilter({
+            gridId: 'projectGrid',
+            filterButtons: '.filter-btn',
+            sortSelect: '#projectSort',
+            itemClass: '.project-item',
+            searchInput: '#projectSearch'
+        });
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Feed Header -->
+    <div class="feed-header text-center">
+        <h2 class="feed-title">Project Feed</h2>
+        <p class="feed-description">Discover and collaborate on exciting projects in our community</p>
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-6">
+                <form action="{% url 'search' %}" method="GET" class="form-inline">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control" placeholder="Search projects...">
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Filters and Sort -->
+    <div class="project-filters">
+        <!-- Status Filters -->
+        <div class="filter-group">
+            <button class="btn btn-outline-primary filter-btn active" data-filter-type="status"
+                data-filter="all">All</button>
+            <button class="btn btn-outline-primary filter-btn" data-filter-type="status"
+                data-filter="active">Active</button>
+            <button class="btn btn-outline-primary filter-btn" data-filter-type="status"
+                data-filter="completed">Completed</button>
+        </div>
+
+        <!-- Sort and Additional Filters -->
+        <div class="row align-items-center justify-content-center mt-3">
+            {% if user.is_authenticated %}
+            <div class="col-auto">
+                <a href="{% url 'create_project' %}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Create Project
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if projects %}
+    <div class="row" id="projectGrid">
+        {% for project in projects %}
+        <div class="col-md-4 mb-4 project-item" data-status="{{ project.status }}">
+            {% include 'core/partials/project_card.html' with project=project show_actions=True %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-results">
+        <i class="fas fa-clipboard-list"></i>
+        <h4>No Projects Found</h4>
+        <p>There are no projects available at the moment.</p>
+        {% if user.is_authenticated %}
+        <a href="{% url 'create_project' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create Project
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'core/feed-filters.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const projectFilter = new FeedFilter({
+            gridId: 'projectGrid',
+            filterButtons: '.filter-btn',
+            sortSelect: '#projectSort',
+            itemClass: '.project-item',
+            searchInput: '#projectSearch',
+            loadingSpinner: '.loading',
+            initialFilters: {
+                status: 'all',
+                priority: 'all'
+            }
+        });
+    });
+</script>
+{% endblock %}

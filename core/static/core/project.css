@@ -1,0 +1,87 @@
+.project-item {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.project-item:hover {
+    transform: translateY(-5px);
+}
+
+.project-card {
+    height: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.project-card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.project-card .card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.project-card .card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.project-status {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.project-status.active {
+    background-color: #e3fcef;
+    color: #0d6832;
+}
+
+.project-status.completed {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+}
+
+.project-status.in-progress {
+    background-color: #fff3e0;
+    color: #e65100;
+}
+
+.project-meta {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.project-description {
+    flex-grow: 1;
+    margin-bottom: 1rem;
+}
+
+.project-members {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.member-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: -10px;
+    border: 2px solid white;
+}
+
+.member-count {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-left: 1rem;
+}
+
+.project-actions {
+    margin-top: auto;
+}

@@ -1,0 +1,377 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.css' rel='stylesheet' />
+<style>
+    #calendar {
+        width: 100%;
+        height: 400px;
+        max-height: 400px;
+        overflow: auto;
+    }    
+    .calendar-controls {
+        margin-bottom: 10px;
+    }
+    .search-bar {
+        margin-bottom: 20px;
+    }
+    #todo-list { height: 300px; overflow-y: auto; }
+    .todo-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+    .todo-item.completed { text-decoration: line-through; color: #888; }
+    .todo-text { flex-grow: 1; margin-right: 10px; }
+    .todo-actions { display: flex; gap: 5px; }
+    .edit-mode .todo-text { display: none; }
+    .edit-mode .edit-input { display: block !important; }
+    .edit-input { display: none; }
+    #todo-filters { margin-bottom: 10px; }
+    #todo-filters button { margin-right: 5px; }
+    #clear-completed { margin-top: 10px; }
+    #announcement-list { margin-top: 20px; }
+    .announcement-item {
+        border: 1px solid #ddd;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    .announcement-title {
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Admin Dashboard</h1>
+
+    <div class="search-bar">
+        <form action="{% url 'search' %}" method="GET" class="form-inline">
+            <div class="input-group w-100">
+                <input type="text" name="q" class="form-control" placeholder="Search for organizations, projects, or users...">
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title h5 mb-0">Calendar</h2>
+                </div>
+                <div class="card-body">
+                    <div class="calendar-controls">
+                        <button id="prev-month" class="btn btn-sm btn-outline-primary">Previous</button>
+                        <button id="next-month" class="btn btn-sm btn-outline-primary">Next</button>
+                        <button id="today" class="btn btn-sm btn-primary">Today</button>
+                        <div class="btn-group" role="group">
+                            <button id="month-view" class="btn btn-sm btn-outline-secondary">Month</button>
+                            <button id="week-view" class="btn btn-sm btn-outline-secondary">Week</button>
+                            <button id="day-view" class="btn btn-sm btn-outline-secondary">Day</button>
+                        </div>
+                        <button id="add-event" class="btn btn-sm btn-success">Add Event</button>
+                    </div>
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title h5 mb-0">To-Do List</h2>
+                </div>
+                <div class="card-body">
+                    <div id="todo-filters">
+                        <button class="btn btn-sm btn-outline-primary filter-btn active" data-filter="all">All</button>
+                        <button class="btn btn-sm btn-outline-primary filter-btn" data-filter="active">Active</button>
+                        <button class="btn btn-sm btn-outline-primary filter-btn" data-filter="completed">Completed</button>
+                    </div>
+                    <div id="todo-list"></div>
+                    <form id="add-todo-form" class="mt-3">
+                        <div class="input-group">
+                            <input type="text" id="new-todo" class="form-control" placeholder="New task" required>
+                            <button type="submit" class="btn btn-primary">Add</button>
+                        </div>
+                    </form>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span id="todo-count"></span>
+                        <button id="clear-completed" class="btn btn-sm btn-outline-danger">Clear Completed</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">User Management</h5>
+                    <p class="card-text">Manage user accounts and permissions.</p>
+                    <a href="{% url 'admin:auth_user_changelist' %}" class="btn btn-primary">Manage Users</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Project Management</h5>
+                    <p class="card-text">View and manage all projects.</p>
+                    <a href="{% url 'project_feed' %}" class="btn btn-primary">Manage Projects</a>
+                </div>
+            </div>
+        </div>
+    
+    <!-- <div class="row mt-4">
+        <div class="col-md-6">
+            <h2>Recent Activity</h2>
+            <ul class="list-group">
+                {% for activity in recent_activities %}
+                    <li class="list-group-item">{{ activity.description }}</li>
+                {% empty %}
+                    <li class="list-group-item">No recent activity.</li>
+                {% endfor %}
+            </ul>
+        </div>
+         <div class="col-md-6">
+            <h2>Announcements</h2>
+            <div id="announcement-list">
+                {% for announcement in announcements %}
+                    <div class="announcement-item">
+                        <div class="announcement-title">{{ announcement.title }}</div>
+                        <div class="announcement-description">{{ announcement.description }}</div>
+                        <div class="announcement-date">{{ announcement.created_at }}</div>
+                    </div>
+                {% empty %}
+                    <p>No announcements available.</p>
+                {% endfor %}
+            </div>
+        </div> -->
+
+        <!-- <div class="col-md-6">
+            <h2>Quick Actions</h2>
+            <div class="list-group">
+                <a href="{% url 'create_project' %}" class="list-group-item list-group-item-action">Create New Project</a>
+                <a href="{% url 'generate_report' %}" class="list-group-item list-group-item-action">Generate Monthly Report</a>
+                <a href="{% url 'send_newsletter' %}" class="list-group-item list-group-item-action">Send Newsletter</a>
+            </div>
+        </div> -->
+    </div>
+</div>
+<div class="modal fade" id="eventModal" tabindex="-1" role="dialog" aria-labelledby="eventModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalLabel">Add/Edit Event</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="eventForm">
+                    <div class="form-group">
+                        <label for="eventTitle">Event Title</label>
+                        <input type="text" class="form-control" id="eventTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="eventStart">Start Time</label>
+                        <input type="datetime-local" class="form-control" id="eventStart" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="eventEnd">End Time</label>
+                        <input type="datetime-local" class="form-control" id="eventEnd" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="eventDescription">Description</label>
+                        <textarea class="form-control" id="eventDescription"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveEvent">Save Event</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js'></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Calendar
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            height: 'auto',
+            events: '{% url "get_calendar_events" %}',
+            eventClick: function(info) {
+                // Handle event click (ex. show event details)
+                alert('Event: ' + info.event.title);
+            }
+        });
+        calendar.render();
+
+        // Calendar control buttons
+        document.getElementById('prev-month').addEventListener('click', function() {
+            calendar.prev();
+        });
+        document.getElementById('next-month').addEventListener('click', function() {
+            calendar.next();
+        });
+        document.getElementById('today').addEventListener('click', function() {
+            calendar.today();
+        });
+        document.getElementById('month-view').addEventListener('click', function() {
+            calendar.changeView('dayGridMonth');
+        });
+        document.getElementById('week-view').addEventListener('click', function() {
+            calendar.changeView('timeGridWeek');
+        });
+        document.getElementById('day-view').addEventListener('click', function() {
+            calendar.changeView('timeGridDay');
+        });
+
+        // Add event button
+        document.getElementById('add-event').addEventListener('click', function() {
+            $('#eventModal').modal('show');
+        });
+
+        // Save event
+        document.getElementById('saveEvent').addEventListener('click', function() {
+            var title = document.getElementById('eventTitle').value;
+            var start = document.getElementById('eventStart').value;
+            var end = document.getElementById('eventEnd').value;
+            var description = document.getElementById('eventDescription').value;
+
+            // send this data to backend
+            // for now, we'll just add it to the calendar
+            calendar.addEvent({
+                title: title,
+                start: start,
+                end: end,
+                description: description
+            });
+
+            $('#eventModal').modal('hide');
+        });
+
+        // Initialize To-Do List
+        const todoList = document.getElementById('todo-list');
+        const addTodoForm = document.getElementById('add-todo-form');
+        const newTodoInput = document.getElementById('new-todo');
+        const todoCount = document.getElementById('todo-count');
+        const clearCompletedBtn = document.getElementById('clear-completed');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        let currentFilter = 'all';
+
+        let todos = JSON.parse(localStorage.getItem('admin_todos')) || [];
+
+        function saveTodos() {
+            localStorage.setItem('admin_todos', JSON.stringify(todos));
+        }
+
+        function renderTodos() {
+            todoList.innerHTML = '';
+            let visibleTodos = todos;
+            if (currentFilter === 'active') {
+                visibleTodos = todos.filter(todo => !todo.completed);
+            } else if (currentFilter === 'completed') {
+                visibleTodos = todos.filter(todo => todo.completed);
+            }
+            visibleTodos.forEach(renderTodoItem);
+            updateTodoCount();
+        }
+
+        function renderTodoItem(todo) {
+            const todoItem = document.createElement('div');
+            todoItem.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+            todoItem.innerHTML = `
+                <span class="todo-text">${todo.text}</span>
+                <input type="text" class="form-control edit-input" value="${todo.text}">
+                <div class="todo-actions">
+                    <button class="btn btn-sm btn-outline-success complete-btn">${todo.completed ? 'Undo' : 'Complete'}</button>
+                    <button class="btn btn-sm btn-outline-primary edit-btn">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger delete-btn">Delete</button>
+                </div>
+            `;
+            todoList.appendChild(todoItem);
+
+            const completeBtn = todoItem.querySelector('.complete-btn');
+            const editBtn = todoItem.querySelector('.edit-btn');
+            const deleteBtn = todoItem.querySelector('.delete-btn');
+            const todoText = todoItem.querySelector('.todo-text');
+            const editInput = todoItem.querySelector('.edit-input');
+
+            completeBtn.addEventListener('click', () => {
+                todo.completed = !todo.completed;
+                saveTodos();
+                renderTodos();
+            });
+
+            editBtn.addEventListener('click', () => {
+                todoItem.classList.toggle('edit-mode');
+                if (todoItem.classList.contains('edit-mode')) {
+                    editInput.focus();
+                } else {
+                    todo.text = editInput.value;
+                    saveTodos();
+                    renderTodos();
+                }
+            });
+
+            deleteBtn.addEventListener('click', () => {
+                todos = todos.filter(t => t !== todo);
+                saveTodos();
+                renderTodos();
+            });
+
+            editInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    todoItem.classList.remove('edit-mode');
+                    todo.text = editInput.value;
+                    saveTodos();
+                    renderTodos();
+                }
+            });
+        }
+
+        function updateTodoCount() {
+            const activeTodos = todos.filter(todo => !todo.completed).length;
+            todoCount.textContent = `${activeTodos} item${activeTodos !== 1 ? 's' : ''} left`;
+        }
+
+        addTodoForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (newTodoInput.value.trim()) {
+                todos.push({ text: newTodoInput.value.trim(), completed: false });
+                saveTodos();
+                newTodoInput.value = '';
+                renderTodos();
+            }
+        });
+
+        clearCompletedBtn.addEventListener('click', () => {
+            todos = todos.filter(todo => !todo.completed);
+            saveTodos();
+            renderTodos();
+        });
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentFilter = btn.dataset.filter;
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderTodos();
+            });
+        });
+
+        renderTodos();
+    });
+</script>
+{% endblock %}

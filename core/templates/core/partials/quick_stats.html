@@ -1,0 +1,59 @@
+{% load static %}
+
+<!-- Quick Stats Section -->
+<div class="row justify-content-center g-3 mb-4">
+    <!-- Projects Stat -->
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'create_project' %}" class="stat-link">
+            <div class="card stat-card bg-gradient-primary text-black">
+                <div class="card-body">
+                    <div class="stat-content">
+                        <div class="stat-info">
+                            <h3 class="stat-number">{{ user_projects|length }}</h3>
+                            <p class="stat-label">Projects</p>
+                        </div>
+                        <div class="stat-icon bg-white bg-opacity-25">
+                            <i class="fas fa-project-diagram text-black fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Organizations Stat -->
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'create_organization' %}" class="stat-link">
+            <div class="card stat-card bg-gradient-success text-black">
+                <div class="card-body">
+                    <div class="stat-content">
+                        <div class="stat-info">
+                            <h3 class="stat-number">{{ user_organizations|length }}</h3>
+                            <p class="stat-label">Organizations</p>
+                        </div>
+                        <div class="stat-icon bg-white bg-opacity-25">
+                            <i class="fas fa-building text-black fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+
+<!-- Quick Stats JavaScript -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show calendar section when clicking on events stat
+        document.getElementById('show-calendar').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelector('.calendar-controls').scrollIntoView({ behavior: 'smooth' });
+        });
+    
+        // Show todos section when clicking on tasks stat
+        document.getElementById('show-todos').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelector('#todo-list').scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+    </script>

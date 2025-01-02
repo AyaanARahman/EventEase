@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Leave Organization</h2>
+<p>Are you sure you want to leave the organization "{{ organization.name }}"?</p>
+
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit">Yes, leave organization</button>
+    <a href="{% url 'dashboard' %}">Cancel</a>
+</form>
+{% endblock %}

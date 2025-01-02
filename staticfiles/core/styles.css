@@ -1,0 +1,235 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    background-color: #f0f4f7;
+}
+
+
+.header {
+    display: flex;
+    justify-content: flex-start;
+    padding: 20px;
+    background-color: #ffffff;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+
+.header .login-link {
+    font-weight: 600;
+    color: #4a90e2;
+    text-decoration: none;
+    margin-left: auto;
+}
+.logo {
+    font-size: 24px;
+    font-weight: 600;
+    color: #4a90e2;
+    text-decoration: none;
+}
+
+
+.content {
+    padding: 40px;
+}
+
+
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #4a90e2;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+
+.login-button {
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    margin-top: 20px;
+}
+
+
+.login-button.signup {
+    background-color: #4a90e2;
+    color: white;
+    margin-top: 200px;
+}
+
+.login-button.signup:hover {
+    background-color: #357abd;
+}
+
+
+.login-button.login {
+    background-color: #f0f4f7;
+    color: #4a90e2;
+    border: 2px solid #4a90e2;
+}
+
+.login-button.login:hover {
+    background-color: #a1c6ea;
+    color: white;
+}
+
+
+.btn:hover {
+    background-color: #357abd;
+}
+
+.header-title h1 {
+    text-align: center;
+    font-size: 50px;
+    color: #4a90e2;
+
+}
+
+.btn-sm {
+    font-size: 14px;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+.btn-group-sm > .btn {
+    font-size: 14px;
+    padding: 5px 10px;
+}
+
+.card-footer .btn-group {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.card-footer .btn {
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+.btn-primary {
+    background-color: #4a90e2;
+    border-color: #4a90e2;
+}
+
+.btn-primary:hover {
+    background-color: #357abd;
+    border-color: #357abd;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #218838;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #c82333;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.btn-info:hover {
+    background-color: #138496;
+    border-color: #138496;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #5a6268;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.card-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+}
+
+/* Login page specific styles */
+.form-floating > label {
+    z-index: 2;
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Optional: Animation for social login buttons */
+.btn-outline-dark:hover {
+    transform: translateY(-1px);
+    transition: transform 0.2s;
+}
+
+/* Password strength indicator */
+.form-text small {
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+/* Terms checkbox styling */
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* Improved focus states */
+.form-check-input:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(45deg, #4e73df 0%, #224abe 100%);
+}
+.bg-gradient-success {
+    background: linear-gradient(45deg, #1cc88a 0%, #13855c 100%);
+}
+.bg-gradient-info {
+    background: linear-gradient(45deg, #36b9cc 0%, #258391 100%);
+}
+.bg-gradient-warning {
+    background: linear-gradient(45deg, #f6c23e 0%, #dda20a 100%);
+}

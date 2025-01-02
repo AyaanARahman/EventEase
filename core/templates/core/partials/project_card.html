@@ -1,0 +1,31 @@
+<div class="card project-card h-100">
+    <div class="card-body">
+        <h5 class="card-title">{{ project.title }}</h5>
+        <p class="card-text">{{ project.description|truncatewords:20 }}</p>
+        <p class="small text-muted">
+            Owner: {{ project.owner.username }}<br>
+            Created: {{ project.created_at|date:"M d, Y" }}
+        </p>
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="badge bg-{{ project.status }}">
+                {{ project.get_status_display }}
+            </span>
+            <a href="{% url 'project_detail' project.slug %}" 
+               class="btn btn-primary btn-sm">View Details</a>
+        </div>
+    </div>
+    {% if show_actions %}
+        <div class="card-footer bg-transparent">
+            <div class="btn-group w-100">
+                {% if project.file %}
+                    <a href="{% url 'download_file' project.slug file.id %}" 
+                       class="btn btn-sm btn-success">Download</a>
+                {% endif %}
+                {% if is_owner %}
+                    <a href="{% url 'manage_members' project.slug %}" 
+                       class="btn btn-sm btn-info">Manage Members</a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>

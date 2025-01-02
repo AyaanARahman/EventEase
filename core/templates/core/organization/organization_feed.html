@@ -1,0 +1,164 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Organization Feed{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/organization_feed.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Feed Header -->
+    <div class="feed-header text-center">
+        <h2 class="feed-title">Organization Feed</h2>
+        <p class="feed-description">Discover and connect with organizations in our community</p>
+        
+        <!-- Search Bar -->
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-6">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" 
+                           id="organizationSearch" 
+                           class="form-control form-control-lg" 
+                           placeholder="Search organizations...">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Organization Filters -->
+    <div class="organization-filters">
+        <!-- Main Filters -->
+        <div class="filter-group">
+            <span class="filter-label">Category</span>
+            <div>
+                <button class="btn btn-outline-primary filter-btn active" 
+                        data-filter-type="category" 
+                        data-filter="all">
+                    <i class="fas fa-globe"></i> All
+                </button>
+                <button class="btn btn-outline-primary filter-btn" 
+                        data-filter-type="category" 
+                        data-filter="academic">
+                    <i class="fas fa-graduation-cap"></i> Academic
+                </button>
+                <button class="btn btn-outline-primary filter-btn" 
+                        data-filter-type="category" 
+                        data-filter="professional">
+                    <i class="fas fa-briefcase"></i> Professional
+                </button>
+                <button class="btn btn-outline-primary filter-btn" 
+                        data-filter-type="category" 
+                        data-filter="social">
+                    <i class="fas fa-users"></i> Social
+                </button>
+            </div>
+        </div>
+
+        <!-- Size Filters -->
+        <div class="filter-group">
+            <span class="filter-label">Size</span>
+            <div>
+                <button class="btn btn-outline-primary filter-btn active" 
+                        data-filter-type="size" 
+                        data-filter="all">
+                    <i class="fas fa-globe"></i> All
+                </button>
+                <button class="btn btn-outline-secondary filter-btn" 
+                        data-filter-type="size" 
+                        data-filter="small">
+                    <i class="fas fa-user"></i> Small (1-10)
+                </button>
+                <button class="btn btn-outline-secondary filter-btn" 
+                        data-filter-type="size" 
+                        data-filter="medium">
+                    <i class="fas fa-user-friends"></i> Medium (11-50)
+                </button>
+                <button class="btn btn-outline-secondary filter-btn" 
+                        data-filter-type="size" 
+                        data-filter="large">
+                    <i class="fas fa-users"></i> Large (51+)
+                </button>
+            </div>
+        </div>
+
+        <!-- Sort and Create -->
+        <div class="row align-items-center justify-content-center mt-3">
+            <div class="col-auto">
+                <select class="form-select sort-dropdown" id="organizationSort">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="size">Size (Largest First)</option>
+                    <option value="members">Members (Most First)</option>
+                </select>
+            </div>
+            {% if user.is_authenticated %}
+            <div class="col-auto">
+                <a href="{% url 'create_organization' %}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Create Organization
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Organizations Grid -->
+    <div class="organization-grid">
+        <div class="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        
+        {% if organizations %}
+            <div class="row" id="organizationGrid">
+                {% for org in organizations %}
+                    <div class="col-md-4 mb-4 organization-item" 
+                         data-category="{{ org.category }}"
+                         data-size="{{ org.size }}"
+                         data-date="{{ org.created_at|date:'Y-m-d' }}"
+                         data-title="{{ org.name }}"
+                         data-members="{{ org.members.count }}">
+                        {% include 'core/partials/organization_card.html' with organization=org show_description=True %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-results">
+                <i class="fas fa-building"></i>
+                <h4>No Organizations Found</h4>
+                <p>There are no organizations available at the moment.</p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'create_organization' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create Organization
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'core/feed-filters.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const organizationFilter = new FeedFilter({
+        gridId: 'organizationGrid',
+        filterButtons: '.filter-btn',
+        sortSelect: '#organizationSort',
+        itemClass: '.organization-item',
+        searchInput: '#organizationSearch',
+        loadingSpinner: '.loading',
+        initialFilters: {
+            category: 'all',
+            size: 'all'
+        }
+    });
+});
+</script>
+{% endblock %}
